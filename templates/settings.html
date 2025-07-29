@@ -1,0 +1,478 @@
+{% extends "base.html" %}
+
+{% block title %}IntruderVision - Settings{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2><i class="fas fa-cog me-2"></i>System Settings</h2>
+            <div>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-video me-1"></i>Live Feed
+                </a>
+            </div>
+        </div>
+        <p class="text-muted">Configure your notification preferences and system settings</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-3 mb-4">
+        <div class="list-group shadow-sm">
+            <a href="#email-settings" class="list-group-item list-group-item-action active" data-bs-toggle="list">
+                <i class="fas fa-envelope me-2"></i>Email Notifications
+            </a>
+            <a href="#sms-settings" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="fas fa-sms me-2"></i>SMS Notifications
+            </a>
+            <a href="#camera-settings" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="fas fa-camera me-2"></i>Camera Settings
+            </a>
+            <a href="#motion-settings" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="fas fa-running me-2"></i>Motion Detection
+            </a>
+            <a href="#system-info" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <i class="fas fa-info-circle me-2"></i>System Information
+            </a>
+        </div>
+    </div>
+    
+    <div class="col-lg-9">
+        <div class="tab-content">
+            <!-- Email Settings -->
+            <div class="tab-pane fade show active" id="email-settings">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-envelope me-2"></i>Email Notification Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('update_settings') }}" method="post">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="email_enabled" name="email_enabled" {% if settings.email.enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="email_enabled">Enable Email Notifications</label>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="smtp_server" class="form-label">SMTP Server</label>
+                                <input type="text" class="form-control" id="smtp_server" name="smtp_server" value="{{ settings.email.smtp_server }}" placeholder="e.g. smtp.gmail.com">
+                                <div class="form-text">The address of your email provider's SMTP server</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="smtp_port" class="form-label">SMTP Port</label>
+                                <input type="number" class="form-control" id="smtp_port" name="smtp_port" value="{{ settings.email.smtp_port }}" placeholder="587">
+                                <div class="form-text">Common ports: 587 (TLS), 465 (SSL)</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="email_username" class="form-label">Email Username</label>
+                                <input type="email" class="form-control" id="email_username" name="email_username" value="{{ settings.email.username }}" placeholder="your.email@example.com">
+                                <div class="form-text">The email address you'll send alerts from</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="email_password" class="form-label">Email Password</label>
+                                <input type="password" class="form-control" id="email_password" name="email_password" placeholder="••••••••">
+                                <div class="form-text">For Gmail, you may need to use an App Password</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="email_recipient" class="form-label">Recipient Email</label>
+                                <input type="email" class="form-control" id="email_recipient" name="email_recipient" value="{{ settings.email.recipient }}" placeholder="recipient@example.com">
+                                <div class="form-text">The email address that will receive alerts</div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-primary" id="test-email">
+                                    <i class="fas fa-paper-plane me-1"></i>Test Email
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>Save Settings
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SMS Settings -->
+            <div class="tab-pane fade" id="sms-settings">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-sms me-2"></i>SMS Notification Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('update_settings') }}" method="post">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="twilio_enabled" name="twilio_enabled" {% if settings.twilio.enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="twilio_enabled">Enable SMS Notifications</label>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>SMS notifications require a Twilio account. <a href="https://www.twilio.com/" target="_blank">Sign up here</a> if you don't have one.
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="twilio_account_sid" class="form-label">Twilio Account SID</label>
+                                <input type="text" class="form-control" id="twilio_account_sid" name="twilio_account_sid" value="{{ settings.twilio.account_sid }}" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="twilio_auth_token" class="form-label">Twilio Auth Token</label>
+                                <input type="password" class="form-control" id="twilio_auth_token" name="twilio_auth_token" placeholder="••••••••">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="twilio_from_number" class="form-label">Twilio Phone Number</label>
+                                <input type="text" class="form-control" id="twilio_from_number" name="twilio_from_number" value="{{ settings.twilio.from_number }}" placeholder="+1234567890">
+                                <div class="form-text">The Twilio phone number you purchased</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="twilio_to_number" class="form-label">Your Phone Number</label>
+                                <input type="text" class="form-control" id="twilio_to_number" name="twilio_to_number" value="{{ settings.twilio.to_number }}" placeholder="+1234567890">
+                                <div class="form-text">The phone number that will receive SMS alerts</div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-primary" id="test-sms">
+                                    <i class="fas fa-comment me-1"></i>Test SMS
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>Save Settings
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Camera Settings -->
+            <div class="tab-pane fade" id="camera-settings">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-camera me-2"></i>Camera Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="#" method="post" id="camera-settings-form">
+                            <div class="mb-3">
+                                <label for="camera-source" class="form-label">Camera Source</label>
+                                <select class="form-select" id="camera-source">
+                                    <option value="0" selected>Default Webcam</option>
+                                    <option value="1">Secondary Camera (if available)</option>
+                                    <option value="rtsp">IP Camera (RTSP URL)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3 d-none" id="rtsp-url-group">
+                                <label for="rtsp-url" class="form-label">RTSP URL</label>
+                                <input type="text" class="form-control" id="rtsp-url" placeholder="rtsp://username:password@192.168.1.100:554/stream">
+                                <div class="form-text">The RTSP URL of your IP camera</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="resolution" class="form-label">Resolution</label>
+                                <select class="form-select" id="resolution">
+                                    <option value="640x480" selected>640x480 (VGA)</option>
+                                    <option value="1280x720">1280x720 (HD)</option>
+                                    <option value="1920x1080">1920x1080 (Full HD)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="fps" class="form-label">Frame Rate (FPS)</label>
+                                <input type="range" class="form-range" min="1" max="30" value="15" id="fps">
+                                <div class="d-flex justify-content-between">
+                                    <span>1 FPS</span>
+                                    <span id="fps-value">15 FPS</span>
+                                    <span>30 FPS</span>
+                                </div>
+                                <div class="form-text">Lower frame rates use less CPU but may miss fast motion</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Image Adjustments</label>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label for="brightness" class="form-label">Brightness</label>
+                                        <input type="range" class="form-range" min="0" max="100" value="50" id="brightness">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="contrast" class="form-label">Contrast</label>
+                                        <input type="range" class="form-range" min="0" max="100" value="50" id="contrast">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="saturation" class="form-label">Saturation</label>
+                                        <input type="range" class="form-range" min="0" max="100" value="50" id="saturation">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Camera settings are not yet implemented in this demo version.
+                            </div>
+                            
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-primary" disabled>
+                                    <i class="fas fa-save me-1"></i>Save Settings
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Motion Detection Settings -->
+            <div class="tab-pane fade" id="motion-settings">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-running me-2"></i>Motion Detection Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="#" method="post" id="motion-settings-form">
+                            <div class="mb-3">
+                                <label for="sensitivity" class="form-label">Motion Sensitivity</label>
+                                <input type="range" class="form-range" min="1" max="10" value="5" id="sensitivity">
+                                <div class="d-flex justify-content-between">
+                                    <span>Low</span>
+                                    <span id="sensitivity-value">Medium</span>
+                                    <span>High</span>
+                                </div>
+                                <div class="form-text">Higher sensitivity may trigger more false positives</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="min-area" class="form-label">Minimum Motion Area</label>
+                                <input type="range" class="form-range" min="1" max="10" value="3" id="min-area">
+                                <div class="d-flex justify-content-between">
+                                    <span>Small</span>
+                                    <span id="min-area-value">Medium</span>
+                                    <span>Large</span>
+                                </div>
+                                <div class="form-text">Ignores motion smaller than this size</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="cooldown" class="form-label">Alert Cooldown Period (seconds)</label>
+                                <input type="number" class="form-control" id="cooldown" value="5" min="1" max="60">
+                                <div class="form-text">Minimum time between consecutive alerts</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Detection Zone</label>
+                                <div class="border p-2 mb-2 bg-light">
+                                    <div class="ratio ratio-16x9 bg-dark">
+                                        <div class="d-flex justify-content-center align-items-center text-white">
+                                            <p>Detection zone editor not available in demo</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-text">Define specific areas to monitor for motion</div>
+                            </div>
+                            
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Motion detection settings are not yet implemented in this demo version.
+                            </div>
+                            
+                            <div class="d-flex justify-content-end">
+                                <button type="button" class="btn btn-primary" disabled>
+                                    <i class="fas fa-save me-1"></i>Save Settings
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- System Information -->
+            <div class="tab-pane fade" id="system-info">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>System Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Software Information</h6>
+                                <table class="table table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <th scope="row">Version</th>
+                                            <td>IntruderVision 1.0</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Framework</th>
+                                            <td>Flask {{ flask.__version__ }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">OpenCV</th>
+                                            <td>{{ cv2.__version__ }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Python</th>
+                                            <td>{{ platform.python_version() }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>System Resources</h6>
+                                <table class="table table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <th scope="row">CPU Usage</th>
+                                            <td><div class="progress">
+                                                <div class="progress-bar" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+                                            </div></td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Memory Usage</th>
+                                            <td><div class="progress">
+                                                <div class="progress-bar bg-info" role="progressbar" style="width: 40%" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100">40%</div>
+                                            </div></td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Disk Space</th>
+                                            <td><div class="progress">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 15%" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100">15%</div>
+                                            </div></td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Uptime</th>
+                                            <td>2 hours, 15 minutes</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <h6>Storage Information</h6>
+                                <table class="table table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <th scope="row">Captures Stored</th>
+                                            <td>{{ motion_events|length }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Storage Used</th>
+                                            <td>{{ (motion_events|length * 150)|int }} KB (estimated)</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Storage Path</th>
+                                            <td><code>{{ request.host_url }}static/captures/</code></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Network Information</h6>
+                                <table class="table table-sm">
+                                    <tbody>
+                                        <tr>
+                                            <th scope="row">Server Address</th>
+                                            <td><code>{{ request.host }}</code></td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Server Port</th>
+                                            <td>5000 (Development)</td>
+                                        </tr>
+                                        <tr>
+                                            <th scope="row">Client IP</th>
+                                            <td><code>{{ request.remote_addr }}</code></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <button type="button" class="btn btn-outline-danger" id="clear-data">
+                                <i class="fas fa-trash-alt me-1"></i>Clear All Captures
+                            </button>
+                            <button type="button" class="btn btn-outline-primary" id="download-logs">
+                                <i class="fas fa-file-download me-1"></i>Download System Logs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Camera source change handler
+    document.getElementById('camera-source').addEventListener('change', function() {
+        const rtspUrlGroup = document.getElementById('rtsp-url-group');
+        if (this.value === 'rtsp') {
+            rtspUrlGroup.classList.remove('d-none');
+        } else {
+            rtspUrlGroup.classList.add('d-none');
+        }
+    });
+    
+    // FPS slider value display
+    document.getElementById('fps').addEventListener('input', function() {
+        document.getElementById('fps-value').textContent = this.value + ' FPS';
+    });
+    
+    // Sensitivity slider value display
+    document.getElementById('sensitivity').addEventListener('input', function() {
+        const value = parseInt(this.value);
+        let text = 'Medium';
+        
+        if (value <= 3) {
+            text = 'Low';
+        } else if (value >= 8) {
+            text = 'High';
+        }
+        
+        document.getElementById('sensitivity-value').textContent = text;
+    });
+    
+    // Min area slider value display
+    document.getElementById('min-area').addEventListener('input', function() {
+        const value = parseInt(this.value);
+        let text = 'Medium';
+        
+        if (value <= 3) {
+            text = 'Small';
+        } else if (value >= 8) {
+            text = 'Large';
+        }
+        
+        document.getElementById('min-area-value').textContent = text;
+    });
+    
+    // Test email button
+    document.getElementById('test-email').addEventListener('click', function() {
+        // In a real app, this would send a test email
+        alert('This feature is not implemented in the demo version.');
+    });
+    
+    // Test SMS button
+    document.getElementById('test-sms').addEventListener('click', function() {
+        // In a real app, this would send a test SMS
+        alert('This feature is not implemented in the demo version.');
+    });
+    
+    // Clear data button
+    document.getElementById('clear-data').addEventListener('click', function() {
+        if (confirm('Are you sure you want to delete all captured images? This action cannot be undone.')) {
+            // In a real app, this would clear all captures
+            alert('This feature is not implemented in the demo version.');
+        }
+    });
+    
+    // Download logs button
+    document.getElementById('download-logs').addEventListener('click', function() {
+        // In a real app, this would download system logs
+        alert('This feature is not implemented in the demo version.');
+    });
+</script>
+{% endblock %}

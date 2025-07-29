@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}IntruderVision - Home{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-video me-2"></i>Live Camera Feed</h5>
+                <div>
+                    <span id="status-indicator" class="badge bg-success">Active</span>
+                    <span id="motion-indicator" class="badge bg-secondary ms-2">No Motion</span>
+                </div>
+            </div>
+            <div class="card-body p-0 position-relative">
+                <img src="{{ url_for('video_feed') }}" class="img-fluid w-100" id="video-feed" alt="Live Camera Feed">
+                <div id="loading-overlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-75 d-none">
+                    <div class="spinner-border text-light" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted"><i class="fas fa-clock me-1"></i><span id="current-time">--:--:--</span></span>
+                    <span class="text-muted" id="connection-status"><i class="fas fa-wifi me-1"></i>Connected</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>System Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        Camera Status
+                        <span class="badge bg-success rounded-pill">Online</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        Motion Detection
+                        <span class="badge bg-success rounded-pill">Active</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        Email Alerts
+                        <span class="badge {% if settings.email.enabled %}bg-success{% else %}bg-danger{% endif %} rounded-pill">
+                            {% if settings.email.enabled %}Enabled{% else %}Disabled{% endif %}
+                        </span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        SMS Alerts
+                        <span class="badge {% if settings.twilio.enabled %}bg-success{% else %}bg-danger{% endif %} rounded-pill">
+                            {% if settings.twilio.enabled %}Enabled{% else %}Disabled{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-bell me-2"></i>Recent Alerts</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" id="recent-alerts">
+                    {% if motion_events %}
+                        {% for event in motion_events[:5] %}
+                            <a href="{{ url_for('static', filename='captures/' + event.image) }}" class="list-group-item list-group-item-action" target="_blank">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">Motion Detected</h6>
+                                    <small>{{ event.timestamp }}</small>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ url_for('static', filename='captures/' + event.image) }}" class="me-3" style="width: 50px; height: 50px; object-fit: cover;" alt="Alert Thumbnail">
+                                    <small>Click to view full image</small>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="list-group-item text-center text-muted py-4">
+                            <i class="fas fa-bell-slash fa-2x mb-2"></i>
+                            <p class="mb-0">No recent alerts</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-list me-1"></i>View All Alerts
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>About IntruderVision</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Advanced Security Solution</h5>
+                        <p>IntruderVision is a powerful webcam-based motion detection security system designed to protect your home or business. Our system uses advanced computer vision algorithms to detect motion and instantly alert you via email and SMS.</p>
+                        
+                        <h5>Key Features</h5>
+                        <ul>
+                            <li>Real-time motion detection with adjustable sensitivity</li>
+                            <li>Instant email alerts with snapshot images</li>
+                            <li>SMS notifications via Twilio integration</li>
+                            <li>Comprehensive dashboard with event history</li>
+                            <li>Easy-to-use settings panel for customization</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>How It Works</h5>
+                        <ol>
+                            <li>The system continuously monitors your webcam feed for motion</li>
+                            <li>When motion is detected, a snapshot is captured and saved</li>
+                            <li>Alerts are sent via your configured notification methods</li>
+                            <li>All events are logged in the dashboard for later review</li>
+                        </ol>
+                        
+                        <h5>Getting Started</h5>
+                        <p>To get the most out of IntruderVision, configure your notification settings in the <a href="{{ url_for('settings_page') }}">Settings</a> page. You can enable email alerts, SMS notifications, or both based on your preferences.</p>
+                        
+                        <div class="text-end mt-3">
+                            <a href="{{ url_for('settings_page') }}" class="btn btn-primary">
+                                <i class="fas fa-cog me-1"></i>Configure Settings
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Update current time
+    function updateTime() {
+        const now = new Date();
+        const timeString = now.toTimeString().split(' ')[0];
+        document.getElementById('current-time').textContent = timeString;
+    }
+    
+    // Update time every second
+    setInterval(updateTime, 1000);
+    updateTime();
+    
+    // Handle video feed loading
+    const videoFeed = document.getElementById('video-feed');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const statusIndicator = document.getElementById('status-indicator');
+    const connectionStatus = document.getElementById('connection-status');
+    
+    videoFeed.onload = function() {
+        loadingOverlay.classList.add('d-none');
+        statusIndicator.className = 'badge bg-success';
+        statusIndicator.textContent = 'Active';
+        connectionStatus.innerHTML = '<i class="fas fa-wifi me-1"></i>Connected';
+    };
+    
+    videoFeed.onerror = function() {
+        loadingOverlay.classList.remove('d-none');
+        statusIndicator.className = 'badge bg-danger';
+        statusIndicator.textContent = 'Offline';
+        connectionStatus.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Disconnected';
+        
+        // Try to reconnect after 5 seconds
+        setTimeout(() => {
+            videoFeed.src = "{{ url_for('video_feed') }}?" + new Date().getTime();
+        }, 5000);
+    };
+    
+    // Define the interval variable for alert fetching
+    let alertFetchInterval;
+    
+    // Fetch recent alerts periodically
+    function fetchRecentAlerts() {
+        // Add a timeout to the fetch to prevent hanging requests
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        
+        fetch('/api/motion_events', { signal: controller.signal })
+            .then(response => {
+                clearTimeout(timeoutId);
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                const alertsContainer = document.getElementById('recent-alerts');
+                
+                // Only update if we have events
+                if (data.length > 0) {
+                    let alertsHtml = '';
+                    
+                    // Display the 5 most recent alerts
+                    const recentAlerts = data.slice(0, 5);
+                    
+                    recentAlerts.forEach(event => {
+                        alertsHtml += `
+                            <a href="/static/captures/${event.image}" class="list-group-item list-group-item-action" target="_blank">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">Motion Detected</h6>
+                                    <small>${event.timestamp}</small>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <img src="/static/captures/${event.image}" class="me-3" style="width: 50px; height: 50px; object-fit: cover;" alt="Alert Thumbnail">
+                                    <small>Click to view full image</small>
+                                </div>
+                            </a>
+                        `;
+                    });
+                    
+                    alertsContainer.innerHTML = alertsHtml;
+                    
+                    // Update motion indicator if recent motion (within last 10 seconds)
+                    const latestEvent = new Date(recentAlerts[0].timestamp);
+                    const now = new Date();
+                    const timeDiff = (now - latestEvent) / 1000; // in seconds
+                    
+                    const motionIndicator = document.getElementById('motion-indicator');
+                    if (timeDiff < 10) {
+                        motionIndicator.className = 'badge bg-danger ms-2';
+                        motionIndicator.textContent = 'Motion Detected!';
+                    } else {
+                        motionIndicator.className = 'badge bg-secondary ms-2';
+                        motionIndicator.textContent = 'No Motion';
+                    }
+                } else if (data.length === 0 && alertsContainer.children.length === 0) {
+                    // Only update if empty and we don't already have the no alerts message
+                    alertsContainer.innerHTML = `
+                        <div class="list-group-item text-center text-muted py-4">
+                            <i class="fas fa-bell-slash fa-2x mb-2"></i>
+                            <p class="mb-0">No recent alerts</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching alerts:', error);
+                // Don't keep trying to fetch if there's a network error
+                if (error.name === 'AbortError' || error.message.includes('network')) {
+                    console.log('Network error detected, pausing alert fetching');
+                    // Temporarily pause the interval and try again after a longer delay
+                    clearInterval(alertFetchInterval);
+                    setTimeout(() => {
+                        // Try one more time after a longer delay
+                        fetchRecentAlerts();
+                        // Restart the interval
+                        alertFetchInterval = setInterval(fetchRecentAlerts, 5000);
+                    }, 30000); // Wait 30 seconds before trying again
+                }
+            });
+    }
+    
+    // Update alerts every 5 seconds
+    alertFetchInterval = setInterval(fetchRecentAlerts, 5000);
+    
+    // Initial fetch
+    fetchRecentAlerts();
+</script>
+{% endblock %}

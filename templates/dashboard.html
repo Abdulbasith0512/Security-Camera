@@ -1,0 +1,449 @@
+{% extends "base.html" %}
+
+{% block title %}IntruderVision - Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .event-card {
+        transition: transform 0.2s;
+    }
+    .event-card:hover {
+        transform: translateY(-5px);
+    }
+    .event-image {
+        height: 180px;
+        object-fit: cover;
+    }
+    .timeline-item {
+        position: relative;
+        padding-left: 40px;
+        margin-bottom: 20px;
+    }
+    .timeline-item:before {
+        content: '';
+        position: absolute;
+        left: 10px;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        background-color: #dee2e6;
+    }
+    .timeline-item:last-child:before {
+        height: 50%;
+    }
+    .timeline-badge {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: #0d6efd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2><i class="fas fa-tachometer-alt me-2"></i>Motion Detection Dashboard</h2>
+            <div>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-video me-1"></i>Live Feed
+                </a>
+            </div>
+        </div>
+        <p class="text-muted">View and manage all detected motion events</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="text-muted">Total Events</div>
+                    <div class="badge bg-primary rounded-pill">{{ motion_events|length }}</div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="text-muted">Today's Events</div>
+                    <div class="badge bg-info rounded-pill" id="today-count">0</div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="text-muted">This Week</div>
+                    <div class="badge bg-success rounded-pill" id="week-count">0</div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted">This Month</div>
+                    <div class="badge bg-warning rounded-pill" id="month-count">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filters</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="date-filter" class="form-label">Date Range</label>
+                    <select class="form-select" id="date-filter">
+                        <option value="all" selected>All Time</option>
+                        <option value="today">Today</option>
+                        <option value="yesterday">Yesterday</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="sort-order" class="form-label">Sort Order</label>
+                    <select class="form-select" id="sort-order">
+                        <option value="newest" selected>Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                    </select>
+                </div>
+                <button id="apply-filters" class="btn btn-primary w-100">
+                    <i class="fas fa-search me-1"></i>Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-bell me-2"></i>Motion Events</h5>
+                <div>
+                    <button id="refresh-events" class="btn btn-sm btn-light">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                    </button>
+                    <div class="btn-group ms-2">
+                        <button type="button" class="btn btn-sm btn-light active" id="grid-view">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light" id="list-view">
+                            <i class="fas fa-list"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light" id="timeline-view">
+                            <i class="fas fa-stream"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Grid View (Default) -->
+                <div id="grid-view-content">
+                    {% if motion_events %}
+                        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="events-grid">
+                            {% for event in motion_events %}
+                                <div class="col event-item" data-timestamp="{{ event.timestamp }}">
+                                    <div class="card h-100 event-card">
+                                        <img src="{{ url_for('static', filename='captures/' + event.image) }}" class="card-img-top event-image" alt="Motion Event">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Motion Detected</h6>
+                                            <p class="card-text text-muted"><i class="fas fa-clock me-1"></i>{{ event.timestamp }}</p>
+                                        </div>
+                                        <div class="card-footer bg-transparent">
+                                            <a href="{{ url_for('static', filename='captures/' + event.image) }}" class="btn btn-sm btn-outline-primary w-100" target="_blank">
+                                                <i class="fas fa-expand me-1"></i>View Full Image
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                            <h5>No Motion Events</h5>
+                            <p class="text-muted">No motion has been detected yet. Events will appear here when motion is detected.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- List View (Hidden by default) -->
+                <div id="list-view-content" class="d-none">
+                    {% if motion_events %}
+                        <div class="list-group" id="events-list">
+                            {% for event in motion_events %}
+                                <div class="list-group-item list-group-item-action event-item" data-timestamp="{{ event.timestamp }}">
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ url_for('static', filename='captures/' + event.image) }}" class="me-3" style="width: 80px; height: 60px; object-fit: cover;" alt="Motion Event">
+                                            <div>
+                                                <h6 class="mb-1">Motion Detected</h6>
+                                                <p class="mb-1 text-muted"><i class="fas fa-clock me-1"></i>{{ event.timestamp }}</p>
+                                            </div>
+                                        </div>
+                                        <a href="{{ url_for('static', filename='captures/' + event.image) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                            <i class="fas fa-expand me-1"></i>View
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                            <h5>No Motion Events</h5>
+                            <p class="text-muted">No motion has been detected yet. Events will appear here when motion is detected.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Timeline View (Hidden by default) -->
+                <div id="timeline-view-content" class="d-none">
+                    {% if motion_events %}
+                        <div class="timeline" id="events-timeline">
+                            {% for event in motion_events %}
+                                <div class="timeline-item event-item" data-timestamp="{{ event.timestamp }}">
+                                    <div class="timeline-badge">
+                                        <i class="fas fa-camera"></i>
+                                    </div>
+                                    <div class="card">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">Motion Detected</h6>
+                                            <span class="text-muted"><i class="fas fa-clock me-1"></i>{{ event.timestamp }}</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <img src="{{ url_for('static', filename='captures/' + event.image) }}" class="img-fluid rounded" alt="Motion Event">
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <p class="mb-2">Motion was detected by the system.</p>
+                                                    <p class="mb-0">
+                                                        <a href="{{ url_for('static', filename='captures/' + event.image) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                                            <i class="fas fa-expand me-1"></i>View Full Image
+                                                        </a>
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                            <h5>No Motion Events</h5>
+                            <p class="text-muted">No motion has been detected yet. Events will appear here when motion is detected.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Pagination -->
+                {% if motion_events and motion_events|length > 12 %}
+                    <div class="d-flex justify-content-center mt-4">
+                        <nav aria-label="Event pagination">
+                            <ul class="pagination" id="events-pagination">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // View switching
+    document.getElementById('grid-view').addEventListener('click', function() {
+        document.getElementById('grid-view-content').classList.remove('d-none');
+        document.getElementById('list-view-content').classList.add('d-none');
+        document.getElementById('timeline-view-content').classList.add('d-none');
+        
+        document.getElementById('grid-view').classList.add('active');
+        document.getElementById('list-view').classList.remove('active');
+        document.getElementById('timeline-view').classList.remove('active');
+    });
+    
+    document.getElementById('list-view').addEventListener('click', function() {
+        document.getElementById('grid-view-content').classList.add('d-none');
+        document.getElementById('list-view-content').classList.remove('d-none');
+        document.getElementById('timeline-view-content').classList.add('d-none');
+        
+        document.getElementById('grid-view').classList.remove('active');
+        document.getElementById('list-view').classList.add('active');
+        document.getElementById('timeline-view').classList.remove('active');
+    });
+    
+    document.getElementById('timeline-view').addEventListener('click', function() {
+        document.getElementById('grid-view-content').classList.add('d-none');
+        document.getElementById('list-view-content').classList.add('d-none');
+        document.getElementById('timeline-view-content').classList.remove('d-none');
+        
+        document.getElementById('grid-view').classList.remove('active');
+        document.getElementById('list-view').classList.remove('active');
+        document.getElementById('timeline-view').classList.add('active');
+    });
+    
+    // Calculate statistics
+    function calculateStatistics() {
+        const events = document.querySelectorAll('.event-item');
+        let todayCount = 0;
+        let weekCount = 0;
+        let monthCount = 0;
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        oneWeekAgo.setHours(0, 0, 0, 0);
+        
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+        oneMonthAgo.setHours(0, 0, 0, 0);
+        
+        events.forEach(event => {
+            const timestamp = event.getAttribute('data-timestamp');
+            const eventDate = new Date(timestamp);
+            
+            if (eventDate >= today) {
+                todayCount++;
+            }
+            
+            if (eventDate >= oneWeekAgo) {
+                weekCount++;
+            }
+            
+            if (eventDate >= oneMonthAgo) {
+                monthCount++;
+            }
+        });
+        
+        document.getElementById('today-count').textContent = todayCount;
+        document.getElementById('week-count').textContent = weekCount;
+        document.getElementById('month-count').textContent = monthCount;
+    }
+    
+    // Apply filters
+    document.getElementById('apply-filters').addEventListener('click', function() {
+        const dateFilter = document.getElementById('date-filter').value;
+        const sortOrder = document.getElementById('sort-order').value;
+        
+        const events = document.querySelectorAll('.event-item');
+        const eventsArray = Array.from(events);
+        
+        // Filter by date
+        let filteredEvents = eventsArray;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        yesterday.setHours(0, 0, 0, 0);
+        
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        oneWeekAgo.setHours(0, 0, 0, 0);
+        
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+        oneMonthAgo.setHours(0, 0, 0, 0);
+        
+        if (dateFilter !== 'all') {
+            filteredEvents = eventsArray.filter(event => {
+                const timestamp = event.getAttribute('data-timestamp');
+                const eventDate = new Date(timestamp);
+                
+                switch (dateFilter) {
+                    case 'today':
+                        return eventDate >= today;
+                    case 'yesterday':
+                        return eventDate >= yesterday && eventDate < today;
+                    case 'week':
+                        return eventDate >= oneWeekAgo;
+                    case 'month':
+                        return eventDate >= oneMonthAgo;
+                    default:
+                        return true;
+                }
+            });
+        }
+        
+        // Sort events
+        filteredEvents.sort((a, b) => {
+            const timestampA = new Date(a.getAttribute('data-timestamp'));
+            const timestampB = new Date(b.getAttribute('data-timestamp'));
+            
+            if (sortOrder === 'newest') {
+                return timestampB - timestampA;
+            } else {
+                return timestampA - timestampB;
+            }
+        });
+        
+        // Update all views
+        const gridContainer = document.getElementById('events-grid');
+        const listContainer = document.getElementById('events-list');
+        const timelineContainer = document.getElementById('events-timeline');
+        
+        // Hide all events first
+        eventsArray.forEach(event => {
+            event.style.display = 'none';
+        });
+        
+        // Show filtered events
+        filteredEvents.forEach(event => {
+            event.style.display = '';
+        });
+        
+        // Show no results message if needed
+        const noResultsMessage = `
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h5>No Events Found</h5>
+                <p class="text-muted">No events match your current filter criteria. Try adjusting your filters.</p>
+            </div>
+        `;
+        
+        if (filteredEvents.length === 0) {
+            // Add no results message to all views
+            document.getElementById('grid-view-content').innerHTML = noResultsMessage;
+            document.getElementById('list-view-content').innerHTML = noResultsMessage;
+            document.getElementById('timeline-view-content').innerHTML = noResultsMessage;
+        }
+    });
+    
+    // Refresh events
+    document.getElementById('refresh-events').addEventListener('click', function() {
+        fetch('/api/motion_events')
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    // Reload the page to show updated events
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching events:', error);
+            });
+    });
+    
+    // Calculate statistics on page load
+    calculateStatistics();
+</script>
+{% endblock %}
