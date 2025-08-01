@@ -97,7 +97,7 @@ def send_email_alert(image_path):
         msg = MIMEMultipart()
         msg['From'] = settings['email']['username']
         msg['To'] = settings['email']['recipient']
-        msg['Subject'] = 'Motion Detected - IntruderVision Alert'
+        msg['Subject'] = 'Motion Detected - Security Camera Alert'
         
         body = f"Motion was detected at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}."
         msg.attach(MIMEText(body, 'plain'))

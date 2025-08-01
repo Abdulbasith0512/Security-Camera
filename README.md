@@ -1,8 +1,8 @@
-# IntruderVision
+# Security Camera
 
 A modern, responsive webcam-based motion detection security system built with Flask, OpenCV, and Bootstrap.
 
-![IntruderVision](https://via.placeholder.com/1200x600/0d6efd/ffffff?text=IntruderVision)
+![Security Camera](https://via.placeholder.com/1200x600/0d6efd/ffffff?text=Security+Camera)
 
 ## Features
 
@@ -24,8 +24,8 @@ A modern, responsive webcam-based motion detection security system built with Fl
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/intrudervision.git
-   cd intrudervision
+   git clone https://github.com/yourusername/security-camera.git
+   cd security-camera
    ```
 
 2. Create a virtual environment and activate it:
@@ -82,7 +82,7 @@ A modern, responsive webcam-based motion detection security system built with Fl
 ## Project Structure
 
 ```
-intrudervision/
+security-camera/
 ├── app.py                 # Main Flask application
 ├── requirements.txt       # Python dependencies
 ├── static/                # Static files

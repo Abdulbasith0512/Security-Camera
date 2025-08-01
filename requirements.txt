@@ -1,4 +1,4 @@
-# IntruderVision - Requirements
+# Security Camera - Requirements
 
 # Web Framework
 flask==2.2.3

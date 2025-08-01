@@ -1,6 +1,6 @@
 /**
- * IntruderVision - Main JavaScript File
- * Handles client-side functionality for the IntruderVision security system
+ * Security Camera - Main JavaScript File
+ * Handles client-side functionality for the Security Camera security system
  */
 
 // Wait for DOM to be fully loaded
