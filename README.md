@@ -144,9 +144,7 @@ The settings page allows you to configure:
 - Ensure your Twilio account is active and funded
 - Check that the phone number format includes country code
 
-## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Acknowledgments
 
@@ -154,7 +152,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [OpenCV](https://opencv.org/)
 - [Bootstrap](https://getbootstrap.com/)
 - [Twilio](https://www.twilio.com/)
-
----
-
-Developed with ❤️ by [Your Name]
