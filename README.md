@@ -152,3 +152,7 @@ The settings page allows you to configure:
 - [OpenCV](https://opencv.org/)
 - [Bootstrap](https://getbootstrap.com/)
 - [Twilio](https://www.twilio.com/)
+
+## 👨‍💻 Author
+- **Syed Abdul Basith** 
+  
